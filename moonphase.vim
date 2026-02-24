@@ -4,7 +4,11 @@ set laststatus=2 # Make statusline persistent
 
 # Calcs from moonphase.sh by Kevin Boone http//github.com/kevinboone/moonphase.sh
 
-def g:Moon_percent(): number
+# moonphase.sh uses 'centi_moons' to calculate the moon phase as a percent,
+# because the shell script only can do integer math. Since vimscript can do
+# floats, we could probably rewrite this to be both more straightforward and
+# more accurate.
+def g:MoonPercent(): number
     var ref_date = '2023-01-15'
     var ref_percent = 75
 
@@ -15,11 +19,18 @@ def g:Moon_percent(): number
     var now_epoch = strptime('%s', strftime('%s')) # It feels like there should be a better way to do this
 
     var sec_diff = now_epoch - ref_epoch
-    var centi_moons = 100 * sec_diff / synodic_seconds # This is a hack we may not need from the original script
+    var centi_moons = 100 * sec_diff / synodic_seconds 
+
     return (centi_moons + ref_percent) % 100
 enddef
 
-def g:Moon_emoji(percent: number): string
+# If this function accepted an array of strings, containing the emojis for
+# example, it would be easy to swap it for an array of Nerd Font icons, etc.
+# It might even make sense to rewrite the function to return a number that
+# could be used to directly index the array, rather than the long if
+# statement, as long as we maintained the way the new moon wraps around the
+# beginning and end of the range.
+def g:MoonEmoji(percent: number): string
     if percent < 7
         return '🌑'
     elseif percent < 19
@@ -41,4 +52,4 @@ def g:Moon_emoji(percent: number): string
     endif
 enddef
 
-set statusline=%=%{Moon_emoji(Moon_percent())}
+set statusline=%=%{MoonEmoji(MoonPercent())}
